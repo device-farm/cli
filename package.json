@@ -1,0 +1,23 @@
+{
+  "name": "@device.farm/cli",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/start.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/device-farm/cli.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/device-farm/cli/issues"
+  },
+  "homepage": "https://github.com/device-farm/cli#readme",
+  "dependencies": {
+    "@device.farm/appglue": "^1.0.13",
+    "commander": "^5.1.0"
+  }
+}
