@@ -1,5 +1,10 @@
 {
-    "args": {
-        "module": "./args.js"
-    }
+    "commands": [
+        {
+            "module": "./login.js"
+        },
+        {
+            "module": "./proxy.js"
+        }
+    ]
 }
