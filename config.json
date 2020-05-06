@@ -1,10 +1,19 @@
 {
+    "user": {
+        "module": "./user-config.js"
+    },
     "commands": [
         {
-            "module": "./login.js"
+            "module": "./login.js",
+            "user": "-> user"
         },
         {
-            "module": "./proxy.js"
+            "module": "./logout.js",
+            "user": "-> user"
+        },
+        {
+            "module": "./proxy.js",
+            "user": "-> user"
         }
     ]
 }

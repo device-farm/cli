@@ -1,5 +1,3 @@
-const fs = require("fs").promises;
-const os = require("os");
 const { spawn } = require("child_process");
 const http = require("http");
 const https = require("https");
@@ -38,9 +36,9 @@ module.exports = async config => {
 
         async function getTarget(req) {
             let targetHost = `${service}-${deviceId}.device.farm`;
-    
+
             let targetUrl = `https://${targetHost}${req.url}`;
-    
+
             return {
                 url: targetUrl,
                 options: {
@@ -56,7 +54,7 @@ module.exports = async config => {
                 }
             };
         }
-    
+
         return new Promise((resolve, reject) => {
 
             let server = http.createServer(async (req, res) => {
@@ -86,7 +84,6 @@ module.exports = async config => {
 
             });
 
-            port = 8777;
             server.listen(port);
 
             server.on("upgrade", async (req, socket, head) => {
@@ -137,9 +134,12 @@ module.exports = async config => {
                 socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
             });
 
+            server.on("error", reject);
+
             server.on("listening", () => {
                 resolve({
-                    port,
+                    service,
+                    port: server.address().port,
                     stop() {
                         return new Promise((resolve, reject) => {
                             server.close(error => {
@@ -161,27 +161,40 @@ module.exports = async config => {
         name: "proxy <device-id> [<command>] [args...]",
         description: "executes local process with device proxy",
         define(program) {
-            program.option("-p, --port <port>", "use given port number, assigned dynamically otherwise")
-            program.option("-s, --service <service>", "connect to given service, defaults to \"docker\"")
+            program.option("-s, --services <services>", "connect to given service(s), defaults to \"docker\"; multiple services are separated by comma")
+            program.option("-p, --ports <ports>", "use given port(s) for corresponding service(s); assigned dynamically if not specified")
         },
 
-        async run(deviceId, command, args, { port, service = "docker" }) {
+        async run(deviceId, command, args, { ports = "", services = "docker" }) {
 
-            let fileConfig = JSON.parse(await fs.readFile(os.homedir() + "/.defa/config.json"));
+            if (!config.user.auth) {
+                throw new Error("Not logged in. Please use 'defa login' command to authenticate against DEVICE.FARM portal.");
+            }
 
-            let proxy = await startProxy({
-                auth: fileConfig.auth,
-                deviceId,
-                port,
-                service
-            });
+            let proxies = [];
 
             try {
 
-                let { code, signal } = await exec(command || process.env.SHELL, args, {
-                    [`${service.toUpperCase()}_PORT`]: proxy.port,
-                    [`${service.toUpperCase()}_HOST`]: `localhost:${proxy.port}`
-                });
+                services = services.split(",").map(s => s.trim());
+                ports = ports.split(",").map(p => parseInt(p) || undefined);
+
+                for (let i in services) {
+                    proxies.push(await startProxy({
+                        auth: config.user.auth,
+                        deviceId,
+                        service: services[i],
+                        port: ports[i]
+                    }));
+                }
+    
+                let { code, signal } = await exec(
+                    command || process.env.SHELL,
+                    args,
+                    proxies.reduce((acc, proxy) => ({ ...acc, 
+                        [proxy.service.toUpperCase() + "_PORT"]: proxy.port, 
+                        [proxy.service.toUpperCase() + "_HOST"]: "localhost:" + proxy.port 
+                    }), {})
+                );
 
                 process.exitCode = signal ? 1 : code;
 
@@ -189,7 +202,9 @@ module.exports = async config => {
                 process.exitCode = 1;
                 throw error;
             } finally {
-                await proxy.stop();
+                for (let proxy of proxies) {
+                    await proxy.stop();
+                }                
             }
         }
     }
