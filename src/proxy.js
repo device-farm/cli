@@ -161,8 +161,14 @@ module.exports = async config => {
         name: "proxy <device-id> [<command>] [args...]",
         description: "executes local process with device proxy",
         define(program) {
-            program.option("-s, --services <services>", "connect to given service(s), defaults to \"docker\"; multiple services are separated by comma")
-            program.option("-p, --ports <ports>", "use given port(s) for corresponding service(s); assigned dynamically if not specified")
+            program
+                .option("-s, --services <services>", "connect to given service(s), defaults to \"docker\"; multiple services are separated by comma")
+                .option("-p, --ports <ports>", "use given port(s) for corresponding service(s); assigned dynamically if not specified")
+                .on("--help", () => {
+                    console.info();
+                    console.info("You can use -- to indicate the end of defa options. Any remaining options will be passed to executed command e.g.:");
+                    console.info("defa proxy 1234abcd -- docker ps --all");
+                });
         },
 
         async run(deviceId, command, args, { ports = "", services = "docker" }) {
@@ -186,13 +192,14 @@ module.exports = async config => {
                         port: ports[i]
                     }));
                 }
-    
+
                 let { code, signal } = await exec(
                     command || process.env.SHELL,
                     args,
-                    proxies.reduce((acc, proxy) => ({ ...acc, 
-                        [proxy.service.toUpperCase() + "_PORT"]: proxy.port, 
-                        [proxy.service.toUpperCase() + "_HOST"]: "localhost:" + proxy.port 
+                    proxies.reduce((acc, proxy) => ({
+                        ...acc,
+                        [proxy.service.toUpperCase() + "_PORT"]: proxy.port,
+                        [proxy.service.toUpperCase() + "_HOST"]: "localhost:" + proxy.port
                     }), {})
                 );
 
@@ -204,7 +211,7 @@ module.exports = async config => {
             } finally {
                 for (let proxy of proxies) {
                     await proxy.stop();
-                }                
+                }
             }
         }
     }
