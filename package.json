@@ -1,21 +1,21 @@
 {
   "name": "@device.farm/cli",
   "version": "1.0.0",
-  "description": "",
+  "description": "DEVICE.FARM command line utility",
   "main": "src/start.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/device-farm/cli.git"
   },
-  "author": "",
+  "author": "Pavel Burgr <pb@device.farm>",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/device-farm/cli/issues"
   },
   "homepage": "https://github.com/device-farm/cli#readme",
+  "bin": {
+    "defa": "./src/start.js"
+  },
   "dependencies": {
     "@device.farm/appglue": "^1.0.13",
     "commander": "^5.1.0"

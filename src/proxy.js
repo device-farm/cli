@@ -166,7 +166,7 @@ module.exports = async config => {
                 .option("-p, --ports <ports>", "use given port(s) for corresponding service(s); assigned dynamically if not specified")
                 .on("--help", () => {
                     console.info();
-                    console.info("You can use -- to indicate the end of defa options. Any remaining options will be passed to executed command e.g.:");
+                    console.info("Use -- to indicate the end of defa options. Any remaining options will be passed to executed command e.g.:");
                     console.info("defa proxy 1234abcd -- docker ps --all");
                 });
         },

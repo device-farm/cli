@@ -1,12 +1,16 @@
+#!/usr/bin/env node
+
 const { Command } = require('commander');
 
 require("@device.farm/appglue")({ require, file: __dirname + "/../config.json" }).main(async config => {
 
+    let package = require(__dirname + "/../package.json");
+
     let program = new Command("defa");
 
     program
-        .version(require(__dirname + "/../package.json").version, '-v, --version', 'output the current version')
-        .description("DEVICE.FARM command line utility")
+        .version(package.version, '-v, --version', 'output the current version')
+        .description(package.description)
         .option("-d, --debug", "display debug information");
 
     config.commands.forEach(command => {
