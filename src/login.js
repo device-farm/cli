@@ -1,13 +1,13 @@
-module.exports = async config => {
+module.exports = async ({ user }) => {
 
     return {
-        name: "login <api-token>",
+        name: "login <api-key>",
         description: "login to DEVICE.FARM portal",
         define(program) {
         },
-        async run(token) {
-            config.user.auth = { token };
-            await config.user.save();
+        async run(apiKey) {
+            user.apiKey = apiKey;
+            await user.save();
             console.info("Authentication data saved.");
         }
     }

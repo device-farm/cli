@@ -2,7 +2,7 @@ const { spawn } = require("child_process");
 const http = require("http");
 const https = require("https");
 
-module.exports = async config => {
+module.exports = async ({ user }) => {
 
     function exec(command, args, env) {
         return new Promise((resolve, reject) => {
@@ -32,7 +32,7 @@ module.exports = async config => {
         }, null, 2));
     }
 
-    function startProxy({ auth, port, deviceId, service }) {
+    function startProxy({ apiKey, port, deviceId, service }) {
 
         async function getTarget(req) {
             let targetHost = `${service}-${deviceId}.device.farm`;
@@ -47,8 +47,8 @@ module.exports = async config => {
                     method: req.method,
                     headers: {
                         ...req.headers,
-                        ...(auth && auth.token ? {
-                            "Authorization": `Bearer ${auth.token}`
+                        ...(apiKey ? {
+                            "Authorization": `Bearer ${apiKey}`
                         } : {})
                     }
                 }
@@ -173,9 +173,7 @@ module.exports = async config => {
 
         async run(deviceId, command, args, { ports = "", services = "docker" }) {
 
-            if (!config.user.auth) {
-                throw new Error("Not logged in. Please use 'defa login' command to authenticate against DEVICE.FARM portal.");
-            }
+            let apiKey = user.getApiKey();
 
             let proxies = [];
 
@@ -186,7 +184,7 @@ module.exports = async config => {
 
                 for (let i in services) {
                     proxies.push(await startProxy({
-                        auth: config.user.auth,
+                        apiKey,
                         deviceId,
                         service: services[i],
                         port: ports[i]

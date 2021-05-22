@@ -1,4 +1,4 @@
-module.exports = async config => {
+module.exports = async ({ user }) => {
 
     return {
         name: "logout",
@@ -6,9 +6,9 @@ module.exports = async config => {
         define(program) {
         },
         async run(token) {
-            delete config.user.auth;
-            await config.user.save();
-            console.info("Authentication data removed.");
+            delete user.auth;
+            await user.save();
+            console.info("API key removed.");
         }
     }
 }
