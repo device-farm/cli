@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@device.farm/appglue": "^1.0.13",
-    "commander": "^5.1.0"
+    "commander": "^5.1.0",
+    "socket.io-client": "^4.1.2"
   }
 }

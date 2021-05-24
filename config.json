@@ -2,6 +2,11 @@
     "user": {
         "module": "./user-config.js"
     },
+    "api": {
+        "module": "./api.js",
+        "getKey": "-> user.getApiKey",
+        "url": "wss://www.device.farm"
+    },
     "commands": [
         {
             "module": "./login.js",
@@ -17,7 +22,7 @@
         },
         {
             "module": "./install.js",
-            "user": "-> user"
+            "api": "-> api"
         }
     ]
 }
