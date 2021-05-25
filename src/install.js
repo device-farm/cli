@@ -42,7 +42,7 @@ module.exports = async ({ api: createApi }) => {
                 throw new Error("No board information for this device.");
             }
 
-            let wireguardSettings = await portal.getWireguardSettings({ deviceId });
+            let wireguardSettings = await portal.getWireGuardSettings({ deviceId });
 
             let environment = {
                 INSTALL_DEVICE: blkDevice,
@@ -93,7 +93,7 @@ module.exports = async ({ api: createApi }) => {
                 await exec(pullCommand.shift(), pullCommand);
                 await exec(runCommand.shift(), runCommand);
                 let wireguardUpdate = JSON.parse(await fs.readFile(`/tmp/${deviceId}/wg.json`));
-                await portal.setWireguardKeys({
+                await portal.setWireGuardKeys({
                     deviceId,
                     publicKey: wireguardUpdate.publicKey,
                     presharedKey: wireguardUpdate.presharedKey
