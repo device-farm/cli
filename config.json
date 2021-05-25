@@ -23,6 +23,10 @@
         {
             "module": "./install.js",
             "api": "-> api"
+        },
+        {
+            "module": "./assign-board.js",
+            "api": "-> api"
         }
     ]
 }
