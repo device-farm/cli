@@ -42,16 +42,16 @@ module.exports = async ({ api: createApi }) => {
                 throw new Error("No board information for this device.");
             }
 
-            let wireguardSettings = await portal.getWireGuardSettings({ deviceId });
+            let wireGuardSettings = await portal.getWireGuardSettings({ deviceId });
 
             let environment = {
                 INSTALL_DEVICE: blkDevice,
                 CONFIG_HOSTNAME: detail.device.id,
-                CONFIG_WG_DEVICE_ADDR: wireguardSettings.address,
-                CONFIG_WG_DEVICE_MASK: wireguardSettings.cidr,
-                CONFIG_WG_SERVER_PUBLIC_KEY: wireguardSettings.server.publicKey,
-                CONFIG_WG_SERVER_HOST: wireguardSettings.server.host,
-                CONFIG_WG_SERVER_PORT: wireguardSettings.server.port,               
+                CONFIG_WG_DEVICE_ADDR: wireGuardSettings.address,
+                CONFIG_WG_DEVICE_MASK: wireGuardSettings.cidr,
+                CONFIG_WG_SERVER_PUBLIC_KEY: wireGuardSettings.server.publicKey,
+                CONFIG_WG_SERVER_HOST: wireGuardSettings.server.host,
+                CONFIG_WG_SERVER_PORT: wireGuardSettings.server.port,               
                 ...wifi ? {
                     CONFIG_WIFI_SSID: base64(wifi.ssid),
                     CONFIG_WIFI_PASSWORD: base64(wifi.password)
@@ -92,11 +92,11 @@ module.exports = async ({ api: createApi }) => {
 
                 await exec(pullCommand.shift(), pullCommand);
                 await exec(runCommand.shift(), runCommand);
-                let wireguardUpdate = JSON.parse(await fs.readFile(`/tmp/${deviceId}/wg.json`));
+                let wireGuardUpdate = JSON.parse(await fs.readFile(`/tmp/${deviceId}/wg.json`));
                 await portal.setWireGuardKeys({
                     deviceId,
-                    publicKey: wireguardUpdate.publicKey,
-                    presharedKey: wireguardUpdate.presharedKey
+                    publicKey: wireGuardUpdate.publicKey,
+                    presharedKey: wireGuardUpdate.presharedKey
                 }); 
 
             }
