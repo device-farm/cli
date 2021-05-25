@@ -61,7 +61,11 @@ module.exports = async ({ api: createApi }) => {
                 } : {}
             };
 
-            let command = [
+            let pullCommand = [
+                `docker`, `pull`, detail.device.board.installer
+            ]
+
+            let runCommand = [
                 `docker`, `run`,
                 `--rm`,
                 `--volume=/dev:/build/host/dev`,
@@ -81,11 +85,13 @@ module.exports = async ({ api: createApi }) => {
 
             if (dryRun) {
 
-                log(command.join(" "));
+                log(pullCommand.join(" "));
+                log(runCommand.join(" "));
 
             } else {
 
-                await exec(command.shift(), command);
+                await exec(pullCommand.shift(), pullCommand);
+                await exec(runCommand.shift(), runCommand);
                 let wireguardUpdate = JSON.parse(await fs.readFile(`/tmp/${deviceId}/wg.json`));
                 await portal.setWireguardKeys({
                     deviceId,

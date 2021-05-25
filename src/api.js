@@ -11,7 +11,7 @@ module.exports = async ({ getKey, url }) => {
             });
 
             socket.on("event", (apiName, eventName, args) => {
-                console.info("EVENT!", ...this.arguments);
+                //TODO: expose events on API
             });
 
             socket.on("connect_error", e => {
