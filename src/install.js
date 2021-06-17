@@ -29,7 +29,8 @@ module.exports = async ({ api: createApi }) => {
         rootOverlayDir,
         dtoDir,
         wifi,
-        sshPubKeysFile
+        sshPubKeysFile,
+        installerImage
     }, log, dryRun) {
 
         let api = await createApi();
@@ -40,6 +41,12 @@ module.exports = async ({ api: createApi }) => {
             let detail = await portal.getDeviceDetail({ deviceId });
             if (!detail.device.board) {
                 throw new Error("No board information for this device.");
+            }
+
+            installerImage = installerImage || detail.device.board.installer;
+
+            if (!installerImage) {
+                throw new Error("You need to specify installer by --installer option.");
             }
 
             let wireGuardSettings = await portal.getWireGuardSettings({ deviceId });
@@ -62,7 +69,7 @@ module.exports = async ({ api: createApi }) => {
             };
 
             let pullCommand = [
-                `docker`, `pull`, detail.device.board.installer
+                `docker`, `pull`, installerImage
             ]
 
             let runCommand = [
@@ -79,7 +86,7 @@ module.exports = async ({ api: createApi }) => {
                 ...Object.entries(environment)
                     .map(([k, v]) => `--env=${k}=${v}`),
                 `--privileged`,
-                detail.device.board.installer
+                installerImage
             ];
 
 
@@ -124,19 +131,21 @@ module.exports = async ({ api: createApi }) => {
                 .option("-s, --ssh <pub-key-file>", "installs public SSH key for user root\nuse - as shorthand for ~/.ssh/id_rsa.pub")
                 .option("-r, --root <overlay-dir>", "root overlay directory")
                 .option("-t, --dto <dto-dir>", "device tree overlay directory")
+                .option("-i, --installer <installer-image>", "installer docker image")
                 .on("--help", () => {
                     console.info();
                     console.info("<blk-device> is SD card block device under /dev e.g. /dev/mmcblk0");
                 });
         },
 
-        async run(deviceId, blkDevice, { wifi, ssh, root, dto, dry }) {
+        async run(deviceId, blkDevice, { wifi, ssh, root, dto, dry, installer }) {
 
             await install(deviceId, blkDevice, {
                 wifi: wifi && parseWifi(wifi),
                 sshPubKeysFile: ssh && (ssh === "-" ? `${process.env.HOME}/.ssh/id_rsa.pub` : ssh),
                 rootOverlayDir: root,
-                dtoDir: dto
+                dtoDir: dto,
+                installerImage: installer
             }, async line => {
                 console.info(line);
             }, dry);
