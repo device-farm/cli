@@ -1,3 +1,5 @@
+const fs = require("fs").promises;
+
 module.exports = async ({ exec, tunnel }) => {
 
     return {
@@ -27,12 +29,29 @@ module.exports = async ({ exec, tunnel }) => {
 
             let port = await tunnel({ undefined, deviceId, service: "ssh" });
 
+            async function checkDir(dir) {
+                try {
+                    await fs.stat(dir);
+                } catch(e) {
+                    if (e.code === "ENOENT") {
+                        await fs.mkdir(dir);
+                    } else {
+                        throw e;
+                    }                    
+                }
+            }
+
+            await checkDir(`${process.env.HOME}/.defa`);
+            await checkDir(`${process.env.HOME}/.defa/known_hosts`);           
+
             let { code, signal } = await exec(
                 "ssh",
                 [
                     `${user}@localhost`,
                     "-p",
                     port,
+                    "-o",
+                    `UserKnownHostsFile=${process.env.HOME}/.defa/known_hosts/${deviceId}`,
                     ...args
                 ],
                 {}
