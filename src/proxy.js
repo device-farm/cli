@@ -20,16 +20,6 @@ module.exports = async ({ user, factories }) => {
         });
     }
 
-    function handleError(err, req, res) {
-        console.error("HTTP error:", err);
-        res.writeHead(err.httpCode || 502, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({
-            error: {
-                message: err.message || err
-            }
-        }, null, 2));
-    }
-
     return {
         name: "proxy <device-id> [<command>] [args...]",
         description: "executes local process with device proxy",
@@ -75,14 +65,18 @@ module.exports = async ({ user, factories }) => {
                 }));
             }
 
+            let env = proxies.reduce((acc, proxy) => ({
+                ...acc,
+                [proxy.service.toUpperCase() + "_PORT"]: proxy.port,
+                [proxy.service.toUpperCase() + "_HOST"]: "localhost:" + proxy.port
+            }), {});
+
+            args = args.map(s => s.replace(/\${?[A-Za-z0-9_]+}?/g, c=>env[c.replace(/[${}]/g, "")]));
+
             let { code, signal } = await exec(
                 command || process.env.SHELL,
                 args,
-                proxies.reduce((acc, proxy) => ({
-                    ...acc,
-                    [proxy.service.toUpperCase() + "_PORT"]: proxy.port,
-                    [proxy.service.toUpperCase() + "_HOST"]: "localhost:" + proxy.port
-                }), {})
+                env
             );
 
             process.exitCode = signal ? 1 : code;
