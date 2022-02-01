@@ -6,7 +6,7 @@ module.exports = async ({ api: createApi }) => {
     return async function ({ port, deviceId, service }) {
 
         if (!port) {
-            throw new Error("Local port needs to be specified for raw tunnel");
+            throw new Error("Local port needs to be specified for tunnel");
         }
 
         let api = await createApi();
@@ -34,7 +34,8 @@ module.exports = async ({ api: createApi }) => {
                         });
 
                     } catch (e) {
-                        console.error("Error starting tunnel:", e);                        
+                        console.error("Error starting tunnel:", e);
+                        client.end();
                     }
 
                 });
@@ -61,19 +62,7 @@ module.exports = async ({ api: createApi }) => {
 
         return {
             service,
-            port,
-            stop() {
-                return new Promise((resolve, reject) => {
-                    server.close(error => {
-                        if (error) {
-                            reject(error);
-                        } else {
-                            resolve();
-                        }
-                    });
-                });
-
-            }
+            port
         }
 
     }

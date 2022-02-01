@@ -39,7 +39,7 @@ module.exports = async ({ user, factories }) => {
                 .option("-p, --ports <ports>", "use given port(s) for corresponding service(s); assigned dynamically if not specified")
                 .on("--help", () => {
                     console.info();
-                    console.info("Services are handled as HTTP by default. To create raw tunnel instead of HTTP proxy, prefix service name with !.");
+                    console.info("Services are handled as HTTP by default. To create tunnel instead of HTTP proxy, prefix service name with !.");
                     console.info("Use -- to indicate the end of defa options. Any remaining options will be passed to executed command e.g.:");
                     console.info("defa proxy 1234abcd -- docker ps --all");
                 });
@@ -63,7 +63,7 @@ module.exports = async ({ user, factories }) => {
 
                     let startProxy;
                     if (service.startsWith("!")) {
-                        startProxy = factories.raw;
+                        startProxy = factories.tunnel;
                         service = service.substring(1);
                     } else {
                         startProxy = factories.http;
@@ -93,9 +93,7 @@ module.exports = async ({ user, factories }) => {
                 process.exitCode = 1;
                 throw error;
             } finally {
-                for (let proxy of proxies) {
-                    await proxy.stop();
-                }
+                process.exit();
             }
         }
     }

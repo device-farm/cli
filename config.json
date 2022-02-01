@@ -21,10 +21,10 @@
             "user": "-> user",
             "factories": {
                 "http": {
-                    "module": "./http-proxy.js"
+                    "module": "./proxy-http.js"
                 },
-                "raw": {
-                    "module": "./raw-tunnel.js",
+                "tunnel": {
+                    "module": "./proxy-tunnel.js",
                     "api": "-> api"
                 }
             }
