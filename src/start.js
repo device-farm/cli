@@ -20,13 +20,18 @@ require("@device.farm/appglue")({ require, file: __dirname + "/../config.json" }
 
         command.define(subProgram);
         subProgram.action(async (...args) => {
-            try {
-                await command.run(...args);
-            } catch (e) {
-                console.error("Error:", program.debug ? e : e.message || e);
-            }
+            await command.run(...args);
         });
     });
-    program.parse(process.argv);
+
+
+    try {
+        program.parse(process.argv);
+    } catch (e) {
+        console.error("Error:", program.debug ? e : e.message || e);
+        process.exitCode = process.exitCode || 1;
+    } finally {
+        process.exit();
+    }
 
 });

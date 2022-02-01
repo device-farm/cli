@@ -51,50 +51,42 @@ module.exports = async ({ user, factories }) => {
 
             let proxies = [];
 
-            try {
+            services = services.split(",").map(s => s.trim());
+            ports = ports.split(",").map(p => parseInt(p) || undefined);
 
-                services = services.split(",").map(s => s.trim());
-                ports = ports.split(",").map(p => parseInt(p) || undefined);
+            for (let i in services) {
 
-                for (let i in services) {
+                let service = services[i];
+                let port = ports[i];
 
-                    let service = services[i];
-                    let port = ports[i];
-
-                    let startProxy;
-                    if (service.startsWith("!")) {
-                        startProxy = factories.tunnel;
-                        service = service.substring(1);
-                    } else {
-                        startProxy = factories.http;
-                    }
-
-                    proxies.push(await startProxy({
-                        apiKey,
-                        deviceId,
-                        service,
-                        port
-                    }));
+                let startProxy;
+                if (service.startsWith("!")) {
+                    startProxy = factories.tunnel;
+                    service = service.substring(1);
+                } else {
+                    startProxy = factories.http;
                 }
 
-                let { code, signal } = await exec(
-                    command || process.env.SHELL,
-                    args,
-                    proxies.reduce((acc, proxy) => ({
-                        ...acc,
-                        [proxy.service.toUpperCase() + "_PORT"]: proxy.port,
-                        [proxy.service.toUpperCase() + "_HOST"]: "localhost:" + proxy.port
-                    }), {})
-                );
-
-                process.exitCode = signal ? 1 : code;
-
-            } catch (error) {
-                process.exitCode = 1;
-                throw error;
-            } finally {
-                process.exit();
+                proxies.push(await startProxy({
+                    apiKey,
+                    deviceId,
+                    service,
+                    port
+                }));
             }
+
+            let { code, signal } = await exec(
+                command || process.env.SHELL,
+                args,
+                proxies.reduce((acc, proxy) => ({
+                    ...acc,
+                    [proxy.service.toUpperCase() + "_PORT"]: proxy.port,
+                    [proxy.service.toUpperCase() + "_HOST"]: "localhost:" + proxy.port
+                }), {})
+            );
+
+            process.exitCode = signal ? 1 : code;
+
         }
     }
 }
