@@ -18,7 +18,16 @@
         },
         {
             "module": "./proxy.js",
-            "user": "-> user"
+            "user": "-> user",
+            "factories": {
+                "http": {
+                    "module": "./http-proxy.js"
+                },
+                "raw": {
+                    "module": "./raw-tunnel.js",
+                    "api": "-> api"
+                }
+            }
         },
         {
             "module": "./install.js",

@@ -1,8 +1,6 @@
 const { spawn } = require("child_process");
-const http = require("http");
-const https = require("https");
 
-module.exports = async ({ user }) => {
+module.exports = async ({ user, factories }) => {
 
     function exec(command, args, env) {
         return new Promise((resolve, reject) => {
@@ -32,131 +30,6 @@ module.exports = async ({ user }) => {
         }, null, 2));
     }
 
-    function startProxy({ apiKey, port, deviceId, service }) {
-
-        async function getTarget(req) {
-            let targetHost = `${service}-${deviceId}.device.farm`;
-
-            let targetUrl = `https://${targetHost}${req.url}`;
-
-            return {
-                url: targetUrl,
-                options: {
-                    agent: new https.Agent(),
-                    servername: targetHost,
-                    method: req.method,
-                    headers: {
-                        ...req.headers,
-                        ...(apiKey ? {
-                            "Authorization": `Bearer ${apiKey}`
-                        } : {})
-                    }
-                }
-            };
-        }
-
-        return new Promise((resolve, reject) => {
-
-            let server = http.createServer(async (req, res) => {
-
-                try {
-
-                    res.setTimeout(0);
-
-                    let target = await getTarget(req);
-
-                    let targetReq = http.request(target.url, target.options, targetRes => {
-                        res.writeHead(targetRes.statusCode, targetRes.statusMessage, targetRes.headers);
-                        res.write("");
-                        res.uncork();
-                        targetRes.pipe(res);
-                    });
-
-                    targetReq.on("error", e => {
-                        handleError(e, req, res);
-                    });
-
-                    req.pipe(targetReq);
-
-                } catch (e) {
-                    handleError(e, req, res);
-                }
-
-            });
-
-            server.listen(port);
-
-            server.on("upgrade", async (req, socket, head) => {
-                try {
-
-                    socket.on("error", e => {
-                        if (e.code !== "EPIPE") {
-                            console.error("Upgraded socket error:", e);
-                        }
-                    });
-
-                    let target = await getTarget(req);
-
-                    let targetReq = http.request(target.url, target.options);
-
-                    targetReq.on("error", e => {
-                        if (e.code !== "ECONNRESET") {
-                            console.error("Upgraded socket error: ", e);
-                        }
-                    });
-
-                    targetReq.on("upgrade", (targetRes, targetSocket, upgradeHead) => {
-
-                        socket.write(
-                            `HTTP/${targetRes.httpVersion} ${targetRes.statusCode} ${targetRes.statusMessage}\n` +
-                            Object.entries(targetRes.headers).map(([k, v]) => `${k}: ${v}\n`).join("") +
-                            "\n"
-                            , () => {
-                                socket.uncork();
-                                socket.pipe(targetSocket).pipe(socket);
-                            });
-
-                    });
-
-                    targetReq.end(head);
-
-                } catch (e) {
-                    console.error("Error proxying upgrade request", e);
-                    //TODO: return valid HTTP response 
-                    socket.destroy();
-                }
-            });
-
-            server.on("clientError", (e, socket) => {
-                if (e.code !== "ECONNRESET") {
-                    console.error("Client error: ", e);
-                }
-                socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
-            });
-
-            server.on("error", reject);
-
-            server.on("listening", () => {
-                resolve({
-                    service,
-                    port: server.address().port,
-                    stop() {
-                        return new Promise((resolve, reject) => {
-                            server.close(error => {
-                                if (error) {
-                                    reject(error);
-                                } else {
-                                    resolve();
-                                }
-                            });
-                        });
-                    }
-                });
-            });
-
-        });
-    }
-
     return {
         name: "proxy <device-id> [<command>] [args...]",
         description: "executes local process with device proxy",
@@ -166,6 +39,7 @@ module.exports = async ({ user }) => {
                 .option("-p, --ports <ports>", "use given port(s) for corresponding service(s); assigned dynamically if not specified")
                 .on("--help", () => {
                     console.info();
+                    console.info("Services are handled as HTTP by default. To create raw tunnel instead of HTTP proxy, prefix service name with !.");
                     console.info("Use -- to indicate the end of defa options. Any remaining options will be passed to executed command e.g.:");
                     console.info("defa proxy 1234abcd -- docker ps --all");
                 });
@@ -183,11 +57,23 @@ module.exports = async ({ user }) => {
                 ports = ports.split(",").map(p => parseInt(p) || undefined);
 
                 for (let i in services) {
+
+                    let service = services[i];
+                    let port = ports[i];
+
+                    let startProxy;
+                    if (service.startsWith("!")) {
+                        startProxy = factories.raw;
+                        service = service.substring(1);
+                    } else {
+                        startProxy = factories.http;
+                    }
+
                     proxies.push(await startProxy({
                         apiKey,
                         deviceId,
-                        service: services[i],
-                        port: ports[i]
+                        service,
+                        port
                     }));
                 }
 

@@ -6,12 +6,22 @@ module.exports = async ({ getKey, url }) => {
 
         return new Promise((resolve, reject) => {
 
+            let listeners = {};
+
             const socket = io(url, {
                 transports: ["polling", "websocket"]
             });
 
-            socket.on("event", (apiName, eventName, args) => {
-                //TODO: expose events on API
+            socket.on("event", async (apiName, eventName, args) => {
+                if (listeners[apiName] && listeners[apiName][eventName]) {
+                    for (let listener of listeners[apiName][eventName]) {
+                        try {
+                            await listener.apply(null, args);
+                        } catch (e) {
+                            console.error("Error in event listener", e);
+                        }
+                    }
+                }
             });
 
             socket.on("connect_error", e => {
@@ -50,21 +60,15 @@ module.exports = async ({ getKey, url }) => {
                         }
                     }
 
-                    // Object.entries(info.events).forEach(([apiName, events]) => {
-                    //     events.forEach(eventName => {
-                    //         let initcap = s => s.charAt(0).toUpperCase() + s.slice(1);
-                    //         let methodName = "on" + (apiName ? initcap(apiName) : "") + initcap(eventName);
-                    //         let jqName = "webglue." + (apiName ? apiName + "." : "") + eventName;
-                    //         $.fn[methodName] = function (handler) {
-                    //             this.on(jqName, (e, ...args) => {
-                    //                 if (e.currentTarget === e.target) {
-                    //                     handler.apply(handler, args);
-                    //                 }
-                    //             });
-                    //             return this;
-                    //         };
-                    //     });
-                    // });
+                    api.on = function (apiName, eventName, listener) {
+                        if (!listeners[apiName]) {
+                            listeners[apiName] = {};
+                        }
+                        if (!listeners[apiName][eventName]) {
+                            listeners[apiName][eventName] = [];
+                        }
+                        listeners[apiName][eventName].push(listener);
+                    }
 
                     resolve(api);
                 });
