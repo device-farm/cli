@@ -7,6 +7,13 @@
         "getKey": "-> user.getApiKey",
         "url": "wss://www.device.farm"
     },
+    "exec": {
+        "module": "./exec.js"
+    },
+    "tunnel": {
+        "module": "./proxy-tunnel.js",
+        "api": "-> api"
+    },
     "commands": [
         {
             "module": "./login.js",
@@ -18,16 +25,19 @@
         },
         {
             "module": "./proxy.js",
+            "exec": "-> exec",
             "user": "-> user",
             "factories": {
                 "http": {
                     "module": "./proxy-http.js"
                 },
-                "tunnel": {
-                    "module": "./proxy-tunnel.js",
-                    "api": "-> api"
-                }
+                "tunnel": "-> tunnel"
             }
+        },
+        {
+            "module": "./ssh.js",
+            "exec": "-> exec",
+            "tunnel": "-> tunnel"
         },
         {
             "module": "./install.js",

@@ -1,24 +1,4 @@
-const { spawn } = require("child_process");
-
-module.exports = async ({ user, factories }) => {
-
-    function exec(command, args, env) {
-        return new Promise((resolve, reject) => {
-
-            let proc = spawn(command, args, {
-                env: { ...process.env, ...env },
-                stdio: ["inherit", "inherit", "inherit"]
-            });
-
-            proc.on("exit", (code, signal) => {
-                resolve({ code, signal });
-            });
-
-            proc.on("error", error => {
-                reject(error);
-            });
-        });
-    }
+module.exports = async ({ user, factories, exec }) => {
 
     return {
         name: "proxy <device-id> [<command>] [args...]",
