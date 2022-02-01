@@ -24,12 +24,13 @@ module.exports = async ({ api: createApi }) => {
 
                         client.on("end", () => {
                             api.tunnel.close({ tunnelId }).catch(error => {
-                                console.error("Error while closing tunnel", error);
+                                console.error("Error while closing tunnel:", error);
                             });
                         });
                         client.on("data", data => {
                             api.tunnel.write({ tunnelId, data }).catch(error => {
-                                console.error("Error while writing to tunnel", error);
+                                console.error("Error while writing to tunnel:", error);
+                                client.end();
                             });
                         });
 
