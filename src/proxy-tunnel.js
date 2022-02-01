@@ -5,10 +5,6 @@ module.exports = async ({ api: createApi }) => {
 
     return async function ({ port, deviceId, service }) {
 
-        if (!port) {
-            throw new Error("Local port needs to be specified for tunnel");
-        }
-
         let api = await createApi();
         let clients = {};
 
@@ -41,14 +37,25 @@ module.exports = async ({ api: createApi }) => {
 
                 });
 
+                let ephemeralPort = !port;
+                port = port || 49152;
+
+                function tryToListen() {
+                    server.listen(port, () => {
+                        resolve(server);
+                    });
+                }
+
                 server.on("error", (error) => {
-                    reject(error);
+                    if (error.code === "EADDRINUSE" && ephemeralPort) {
+                        port++;
+                        tryToListen();
+                    } else {
+                        reject(error);
+                    }
                 });
 
-                server.listen(port, () => {
-                    resolve(server);
-                });
-
+                tryToListen();
             });
         }
 
