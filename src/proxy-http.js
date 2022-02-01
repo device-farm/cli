@@ -106,10 +106,7 @@ module.exports = async ({ }) => function ({ apiKey, port, deviceId, service }) {
         server.on("error", reject);
 
         server.on("listening", () => {
-            resolve({
-                service,
-                port: server.address().port
-            });
+            resolve(server.address().port);
         });
 
     });

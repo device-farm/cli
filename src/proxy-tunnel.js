@@ -68,11 +68,7 @@ module.exports = async ({ api: createApi }) => {
             }
         });
 
-        return {
-            service,
-            port
-        }
-
+        return port;
     }
 
 };

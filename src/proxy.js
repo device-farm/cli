@@ -57,12 +57,15 @@ module.exports = async ({ user, factories }) => {
                     startProxy = factories.http;
                 }
 
-                proxies.push(await startProxy({
-                    apiKey,
-                    deviceId,
-                    service,
-                    port
-                }));
+                proxies.push({
+                    port: await startProxy({
+                        apiKey,
+                        deviceId,
+                        service,
+                        port
+                    }),
+                    service
+                });
             }
 
             let env = proxies.reduce((acc, proxy) => ({
@@ -71,7 +74,7 @@ module.exports = async ({ user, factories }) => {
                 [proxy.service.toUpperCase() + "_HOST"]: "localhost:" + proxy.port
             }), {});
 
-            args = args.map(s => s.replace(/\${?[A-Za-z0-9_]+}?/g, c=>env[c.replace(/[${}]/g, "")]));
+            args = args.map(s => s.replace(/\${?[A-Za-z0-9_]+}?/g, c => env[c.replace(/[${}]/g, "")]));
 
             let { code, signal } = await exec(
                 command || process.env.SHELL,
