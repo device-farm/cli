@@ -43,7 +43,11 @@ module.exports = async ({ api: createApi }) => {
                 throw new Error("No board information for this device.");
             }
 
-            installerImage = installerImage || detail.device.board.installer;
+            installerImage = installerImage || (
+                detail.device.board.images &&
+                detail.device.board.images.docker &&
+                detail.device.board.images.docker.id
+            );
 
             if (!installerImage) {
                 throw new Error("You need to specify installer by --installer option.");
@@ -58,7 +62,7 @@ module.exports = async ({ api: createApi }) => {
                 CONFIG_WG_DEVICE_MASK: wireGuardSettings.cidr,
                 CONFIG_WG_SERVER_PUBLIC_KEY: wireGuardSettings.server.publicKey,
                 CONFIG_WG_SERVER_HOST: wireGuardSettings.server.host,
-                CONFIG_WG_SERVER_PORT: wireGuardSettings.server.port,               
+                CONFIG_WG_SERVER_PORT: wireGuardSettings.server.port,
                 ...wifi ? {
                     CONFIG_WIFI_SSID: base64(wifi.ssid),
                     CONFIG_WIFI_PASSWORD: base64(wifi.password)
@@ -104,7 +108,7 @@ module.exports = async ({ api: createApi }) => {
                     deviceId,
                     publicKey: wireGuardUpdate.publicKey,
                     presharedKey: wireGuardUpdate.presharedKey
-                }); 
+                });
 
             }
 
