@@ -36,8 +36,6 @@ module.exports = async ({ }) => function ({ apiKey, port, deviceId, service }) {
 
                 let targetReq = http.request(target.url, target.options, targetRes => {
                     res.writeHead(targetRes.statusCode, targetRes.statusMessage, targetRes.headers);
-                    res.write("");
-                    res.uncork();
                     targetRes.pipe(res);
                 });
 
@@ -91,7 +89,7 @@ module.exports = async ({ }) => function ({ apiKey, port, deviceId, service }) {
 
             } catch (e) {
                 console.error("Error proxying upgrade request", e);
-                //TODO: return valid HTTP response 
+                //TODO: return valid HTTP response
                 socket.destroy();
             }
         });
