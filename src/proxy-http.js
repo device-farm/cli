@@ -36,6 +36,7 @@ module.exports = async ({ }) => function ({ apiKey, port, deviceId, service }) {
 
                 let targetReq = http.request(target.url, target.options, targetRes => {
                     res.writeHead(targetRes.statusCode, targetRes.statusMessage, targetRes.headers);
+                    res.write("");
                     targetRes.pipe(res);
                 });
 
