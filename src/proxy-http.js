@@ -19,7 +19,8 @@ module.exports = async ({ }) => function ({ apiKey, port, deviceId, service }) {
                     ...(apiKey ? {
                         "Authorization": `Bearer ${apiKey}`
                     } : {})
-                }
+                },
+                insecureHTTPParser: true
             }
         };
     }
