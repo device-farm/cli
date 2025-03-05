@@ -46,6 +46,10 @@
         {
             "module": "./assign-board.js",
             "api": "-> api"
+        },
+        {
+            "module": "./wg.js",
+            "api": "-> api"
         }
     ]
 }

@@ -5,7 +5,7 @@ module.exports = async ({ user }) => {
         description: "logout from DEVICE.FARM portal",
         define(program) {
         },
-        async run(token) {
+        async run() {
             delete user.auth;
             await user.save();
             console.info("API key removed.");
