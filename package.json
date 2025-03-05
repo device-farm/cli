@@ -1,6 +1,6 @@
 {
   "name": "@device.farm/cli",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "description": "DEVICE.FARM command line utility",
   "main": "src/start.js",
   "repository": {
